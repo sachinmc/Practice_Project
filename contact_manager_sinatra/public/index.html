@@ -29,6 +29,10 @@
         text-decoration: none;
       }
 
+      .banner:hover {
+        cursor: pointer;
+      }
+
     </style>
   </head>
   <body>
@@ -36,11 +40,11 @@
     <!-- Top Banner -->
     <div class="fluid-container text-center text-light boxone">
       <div class="row">
-        <div class="col-md-12 mt-4">
+        <div class="col-md-12 mt-4 banner">
           <h1>Contact Manager</h1>
         </div>
         <div class="col-md-12 text-white-10 mb-4">
-          <h5>Using jQuery, Handlebars and Bootstrap</h5>
+          <h5>Using XHR, jQuery, Handlebars and Bootstrap</h5>
         </div>
       </div>
     </div>
@@ -65,9 +69,7 @@
 
       <!-- contacts added by JS/Handlebars here -->
       <div class="container">
-        <div class="card-group">
-          <div class="row" style="width: 1000px">
-          </div>
+        <div class="row cardgroup">
         </div>
       </div>
 
@@ -184,7 +186,7 @@
 
       {{#each contacts}}
       <div class="col-md-4 oneCard" data-id="{{this.id}}">
-        <div class="card border-0" style="width: 16rem;">
+        <div class="card border-0 mx-auto" style="width: 16rem;">
           <div class="card-body">
             <h5 class="card-title">
               {{this.full_name}}

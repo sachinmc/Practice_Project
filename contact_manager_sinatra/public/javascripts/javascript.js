@@ -62,9 +62,9 @@ var contactForm = {
     req.send();
     req.addEventListener('load', function() {
       self.contacts = req.response;
-      $('.card-group .row').children().remove();
+      $('.cardgroup').children().remove();
       var contactTagArray = self.generateContactTagArray();
-      $('.card-group .row').append(self.ccTemplate({ contacts: contactTagArray }));
+      $('.cardgroup').append(self.ccTemplate({ contacts: contactTagArray }));
       $('#messageBox').children().remove();
       $('#frontPage').show('slow');
     });
@@ -112,9 +112,62 @@ var contactForm = {
             return person.id !== +id;
           });
           $('#frontPage').find('[data-id=' + id + ']').remove();
+
+          if (!self.contacts.length) {
+            $('.cardgroup').children().remove(); // precaution
+            $('#messageBox').append(msgTemplate({ message: "No contacts found" }));
+          }
         }
       });
     }
+  },
+  findContacts: function() {
+    var search = $(event.target).val();
+    var matches = [];
+    var searchRegex = new RegExp(search.toLowerCase());
+    this.contacts.forEach(function(person) {
+      if (searchRegex.test(person.full_name.toLowerCase())) {
+        matches.push(person);
+      }
+    });
+
+    $('.cardgroup').children().remove();
+    $('#messageBox').children().remove();
+
+    if (matches.length === 0) {
+      var msgstring = "There are no contacts matching the letters ";
+      $('#messageBox').append(this.msgBoxTemplate2({ message: msgstring, search: search }));
+    } else {
+      var contactTagArray = this.generateContactTagArray(matches);
+      $('.cardgroup').append(this.ccTemplate({ contacts: contactTagArray }));
+    }
+  },
+  taggedContacts: function() {
+    event.preventDefault();
+    var tagValue = $(event.target).text();
+    var tagged = this.contacts.filter(function(person) {
+      var tags = person.tags.split(",");
+      return tags.includes(tagValue);
+    });
+
+    $('.cardgroup').children().remove();
+    var contactTagArray = this.generateContactTagArray(tagged);
+    $('.cardgroup').append(this.ccTemplate({ contacts: contactTagArray }));
+  },
+  generateContactTagArray: function(contacts) {
+    if (contacts) {
+      return contacts.map(function(person) {
+        var newObj = Object.create(person);
+        newObj.tags = person.tags.split(',');
+        return newObj;
+      });
+    }
+
+    return this.contacts.map(function(person) {
+      var newObj = Object.create(person);
+      newObj.tags = person.tags.split(',');
+      return newObj;
+    });
   },
   renderFrontPage: function() {
     event.preventDefault();
@@ -138,7 +191,7 @@ var contactForm = {
         var contactTagArray = self.generateContactTagArray();
         var context = { contacts: contactTagArray };
 
-        $('.card-group .row').append(cardTemplate(context));
+        $('.cardgroup').append(cardTemplate(context));
       } else {
         $('#messageBox').append(msgTemplate({ message: "No contacts found" }));
       }
@@ -149,57 +202,6 @@ var contactForm = {
     $('#editContact').hide();
     this.renderPage(this.ccTemplate, this.msgBoxTemplate1);
   },
-  findContacts: function() {
-    var search = $(event.target).val();
-    var matches = [];
-    var searchRegex = new RegExp(search.toLowerCase());
-    this.contacts.forEach(function(person) {
-      if (searchRegex.test(person.full_name.toLowerCase())) {
-        matches.push(person);
-      }
-    });
-
-    // should search functionality search through tagged contacts only
-    // if (this.contacts.length > $('.card-group row').children().length) ...
-
-    $('.card-group .row').children().remove();
-    $('#messageBox').children().remove();
-
-    if (matches.length === 0) {
-      var msgstring = "There are no contacts matching the letters ";
-      $('#messageBox').append(this.msgBoxTemplate2({ message: msgstring, search: search }));
-    } else {
-      var contactTagArray = this.generateContactTagArray(matches);
-      $('.card-group .row').append(this.ccTemplate({ contacts: contactTagArray }));
-    }
-  },
-  taggedContacts: function() {
-    event.preventDefault();
-    var tagValue = $(event.target).text();
-    var tagged = this.contacts.filter(function(person) {
-      var tags = person.tags.split(",");
-      return tags.includes(tagValue);
-    });
-
-    $('.card-group .row').children().remove();
-    var contactTagArray = this.generateContactTagArray(tagged);
-    $('.card-group .row').append(this.ccTemplate({ contacts: contactTagArray }));
-  },
-  generateContactTagArray: function(contacts) {
-    if (contacts) {
-      return contacts.map(function(person) {
-        var newObj = Object.create(person);
-        newObj.tags = person.tags.split(',');
-        return newObj;
-      });
-    }
-
-    return this.contacts.map(function(person) {
-      var newObj = Object.create(person);
-      newObj.tags = person.tags.split(',');
-      return newObj;
-    });
-  },
   compileTemplates: function() {
     this.ccTemplate = Handlebars.compile($('#contactCard').html());
     this.msgBoxTemplate1 = Handlebars.compile($('#msgBox1').html());
@@ -208,13 +210,14 @@ var contactForm = {
   },
   bindEvents: function() {
     $('#frontPage').on('click', '.addContact', $.proxy(this.createContact, this));
-    $('.card-group').on('click', 'a.editCard', $.proxy(this.editContact, this));
-    $('.card-group').on('click', 'a.deleteCard', $.proxy(this.deleteContact, this));
-    $('.card-group').on('click', 'a.badge', $.proxy(this.taggedContacts, this));
+    $('.cardgroup').on('click', 'a.editCard', $.proxy(this.editContact, this));
+    $('.cardgroup').on('click', 'a.deleteCard', $.proxy(this.deleteContact, this));
+    $('.cardgroup').on('click', 'a.badge', $.proxy(this.taggedContacts, this));
     $('#createContact').on('submit', $.proxy(this.addContact, this));
     $('#editContact').on('submit', $.proxy(this.updateContact, this));
     $('#forms').on('click', '[type=button]', this.renderFrontPage);
     $('#searchBar').on('input', $.proxy(this.findContacts, this));
+    $('.banner').on('click', $.proxy(this.displayLandingPage, this));
   },
   init: function() {
     this.compileTemplates();
@@ -224,7 +227,3 @@ var contactForm = {
 }
 
 $($.proxy(contactForm.init, contactForm));
-
-// addContact and editContact
-// hide front page and then render form using handlebars
-// create a parent div for forms, to which you can perform event delegation

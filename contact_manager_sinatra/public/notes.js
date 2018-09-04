@@ -35,3 +35,7 @@
 // this user is deleted you want to show no contacts message.
 //
 // space between tags, input validation
+//
+
+// should search functionality search through tagged contacts only
+// if (this.contacts.length > $('.card-group row').children().length) ...
